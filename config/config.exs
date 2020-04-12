@@ -12,6 +12,9 @@ config :arcgis_export,
 
 # Configures the endpoint
 config :arcgis_export, ArcgisExportWeb.Endpoint,
+  http: [
+    protocol_options: [idle_timeout: 10 * 60 * 1000]
+  ],
   url: [host: "localhost"],
   secret_key_base: "SKLUf0yK/ACfzpm0AH/NfG4Zyw/B1ze24RqZZnTQrbcpkiW+y+5Y9CMIDwZhm6b0",
   render_errors: [view: ArcgisExportWeb.ErrorView, accepts: ~w(html json)],

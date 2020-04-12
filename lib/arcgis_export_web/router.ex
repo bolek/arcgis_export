@@ -7,6 +7,7 @@ defmodule ArcgisExportWeb.Router do
     plug :fetch_live_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :put_root_layout, {ArcgisExportWeb.LayoutView, :root}
   end
 
   pipeline :api do
@@ -15,6 +16,10 @@ defmodule ArcgisExportWeb.Router do
 
   scope "/", ArcgisExportWeb do
     pipe_through :browser
+
+    get "/download", PageController, :download
+
+    live "/export", ExporterLive
 
     get "/", PageController, :index
   end

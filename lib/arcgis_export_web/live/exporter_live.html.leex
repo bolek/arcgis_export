@@ -1,0 +1,28 @@
+<form phx-submit="validate">
+  <input type="text" name="url" value="<%= @url %>" list="matches" placeholder="service url" />
+
+  <button>check</button>
+  <div><%= @status %></div>
+</form>
+
+<%= if @service do %>
+  <div>
+    <h2>Layer: <%= @service.name %> (ID: <%= @service.id %>)</h2>
+    <p><%= if @service.description == nil, do: "no description", else: @service.description %></p>
+    <dl>
+      <dt>Server version: <%= @service.description %></dt>
+      <dt>Max Record Count: <%= @service.max_record_count %>
+      <dt>Total records: <%= if @service.total_records == nil do %>counting ...<% else %> <%= @service.total_records%> <% end %></dt>
+    </dl>
+    <%# <button phx-click="build_csv">Prepare CSV</button> %>
+  </div>
+
+  <div><a href="/download?url=<%= @service.url %>">Download CSV</a></div>
+
+  <div><h2>Active Downloads</h2></div>
+  <dl>
+  <%= for key <- Map.keys(@active_downloads) do %> 
+    <dt><%= inspect(Map.get(@active_downloads, key).pid) %> :: downloading - <%= (Map.get(@active_downloads, key).count / @service.total_records) * 100 %>%</dt>
+  <% end %>
+  </dl>
+<% end %>

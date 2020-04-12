@@ -9,7 +9,7 @@ defmodule ArcgisExport.Application do
     # List all child processes to be supervised
     children = [
       # Start the Ecto repository
-      ArcgisExport.Repo,
+      # ArcgisExport.Repo,
       # Start the endpoint when the application starts
       ArcgisExportWeb.Endpoint
       # Starts a worker by calling: ArcgisExport.Worker.start_link(arg)

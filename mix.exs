@@ -44,6 +44,9 @@ defmodule ArcgisExport.MixProject do
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
       {:phoenix_live_view, "~> 0.11.1"},
+      {:httpoison, "~> 1.6"},
+      {:recase, "~> 0.5"},
+      {:nimble_csv, "~> 0.7"},
       {:floki, ">= 0.0.0", only: :test}
     ]
   end
