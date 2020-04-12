@@ -8,15 +8,21 @@ defmodule ArcgisExportWeb.PageController do
   def download(conn, %{"url" => url}) do
     broadcast(url, 0, "initializing download")
 
+    {:ok, %{name: name, max_record_count: max} = service} = ArcgisExport.Service.new(url)
+
+    file_name =
+      name
+      |> String.downcase()
+      |> String.trim()
+      |> String.replace(~r(\s+), "_")
+
     conn =
       conn
       |> put_resp_header(
         "content-disposition",
-        ~s(attachment; filename="text.csv")
+        ~s(attachment; filename="#{file_name}.csv")
       )
       |> Plug.Conn.send_chunked(200)
-
-    {:ok, %{max_record_count: max} = service} = ArcgisExport.Service.new(url)
 
     {conn, _} =
       service
