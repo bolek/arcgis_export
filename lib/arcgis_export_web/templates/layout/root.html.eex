@@ -6,12 +6,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title><%= assigns[:page_title] || "ArcgisExport · Phoenix Framework" %></title>
     <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
-    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.css">
 
     <link rel="stylesheet" href="<%= Routes.static_path(@conn, "/css/app.css") %>"/>
     <%= csrf_meta_tag() %>
   </head>
   <body>
+    <div class="uk-section uk-section-primary">
+      <div class="uk-container uk-container-small">
+        <div class="uk-panel uk-light uk-margin-medium">
+          <h1>ArcGIS Export</h1>
+          <p>Simply export all the data from an ArcGIS REST service endpoint to a CSV file</p>
+        </div>
+      </div>
+    </div>
+
     <%= @inner_content %>
     <script type="text/javascript" src="<%= Routes.static_path(@conn, "/js/app.js") %>"></script>
   </body>

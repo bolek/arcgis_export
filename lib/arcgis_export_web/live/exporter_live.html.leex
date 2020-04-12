@@ -1,28 +1,54 @@
-<form phx-submit="validate">
-  <input type="text" name="url" value="<%= @url %>" list="matches" placeholder="service url" />
+<form phx-submit="validate" class="uk-form-stacked">
+  <div class="uk-margin">
+    <div class="uk-form-controls">
+      <input class="uk-input <%= if @service do %>uk-form-success<% end %>" type="text" name="url" value="<%= @url %>" list="matches" placeholder="service url" />
+    </div>
+  </div>
 
-  <button>check</button>
+  <div class="uk-margin">
+    <div class="uk-form-controls">
+      <button class="uk-button uk-button-primary">check</button>
+    </div>
+  </div>
+
   <div><%= @status %></div>
 </form>
 
 <%= if @service do %>
-  <div>
+  <div class="uk-margin">
     <h2>Layer: <%= @service.name %> (ID: <%= @service.id %>)</h2>
-    <p><%= if @service.description == nil, do: "no description", else: @service.description %></p>
-    <dl>
-      <dt>Server version: <%= @service.description %></dt>
-      <dt>Max Record Count: <%= @service.max_record_count %>
+    <p>
+      <%= if @service.description == nil do %>
+        <i>no description</i>
+      <% else %> 
+        <%= @service.description %>
+      <% end %>
+    </p>
+    <dl class="uk-description-list">
+      <dt>Max Record Count: <%= @service.max_record_count %></dt>
       <dt>Total records: <%= if @service.total_records == nil do %>counting ...<% else %> <%= @service.total_records%> <% end %></dt>
     </dl>
-    <%# <button phx-click="build_csv">Prepare CSV</button> %>
+
+    <a href="/download?url=<%= @service.url %>">Download CSV</a>
   </div>
 
-  <div><a href="/download?url=<%= @service.url %>">Download CSV</a></div>
+  <%= if length(Map.keys(@active_downloads)) > 0 do %>
+  <div class="ui-margin">
+    <h2>Active Downloads</h2>
+    <dl class="uk-description-list">
+    <%= for key <- Map.keys(@active_downloads) do %>
+      <% 
+        download = Map.get(@active_downloads, key) 
 
-  <div><h2>Active Downloads</h2></div>
-  <dl>
-  <%= for key <- Map.keys(@active_downloads) do %> 
-    <dt><%= inspect(Map.get(@active_downloads, key).pid) %> :: downloading - <%= (Map.get(@active_downloads, key).count / @service.total_records) * 100 %>%</dt>
+        numerator = if download.message == "completed" do
+          @service.total_records
+        else
+          download.count
+        end
+      %>
+      <dt><%= inspect(download.pid) %> :: <%= download.message %> - <%= Float.round(numerator / @service.total_records * 100, 2) %>%</dt>
+    <% end %>
+    </dl>
+  </div>
   <% end %>
-  </dl>
 <% end %>

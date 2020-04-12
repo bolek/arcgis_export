@@ -34,6 +34,8 @@ defmodule ArcgisExportWeb.PageController do
         end
       end)
 
+    broadcast(url, nil, "completed")
+
     conn
   end
 

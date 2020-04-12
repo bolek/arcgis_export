@@ -9,13 +9,8 @@ defmodule ArcgisExportWeb.ExporterLive do
     {:ok, assign(socket, url: '', status: '', service: nil, active_downloads: %{})}
   end
 
-  # def handle_info(:update, socket) do
-  #   # temperature = :rand.uniform(1000)
-  #   # {:noreply, assign(socket, :temperature, temperature)}
-  # end
-
-  def handle_event("validate", %{"url" => url}, %{assigns: assigns} = socket) do
-    maybe_unsubscribe(assigns)
+  def handle_params(%{"url" => url}, _uri, socket) do
+    maybe_unsubscribe(socket.assigns)
 
     ArcgisExportWeb.Endpoint.subscribe(url)
 
@@ -24,10 +19,32 @@ defmodule ArcgisExportWeb.ExporterLive do
     {:noreply, assign(socket, status: "checking service ...", url: url, service: nil)}
   end
 
+  def handle_params(%{}, _uri, socket) do
+    {:noreply, socket}
+  end
+
+  # def handle_info(:update, socket) do
+  #   # temperature = :rand.uniform(1000)
+  #   # {:noreply, assign(socket, :temperature, temperature)}
+  # end
+
+  def handle_event("validate", %{"url" => url}, socket) do
+    {:noreply,
+     push_redirect(
+       socket,
+       to:
+         ArcgisExportWeb.Router.Helpers.live_path(
+           socket,
+           ArcgisExportWeb.ExporterLive,
+           url: url
+         )
+     )}
+  end
+
   def handle_event("build_csv", %{}, %{assigns: %{service: service}} = socket) do
     send(self(), {:build_csv, service})
 
-    {:noreply, assign(socket, status: "prepareing CSV")}
+    {:noreply, assign(socket, status: "preparing CSV")}
   end
 
   defp maybe_unsubscribe(%{service: %{url: url}}), do: ArcgisExportWeb.Endpoint.unsubscribe(url)
