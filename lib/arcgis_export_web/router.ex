@@ -19,9 +19,7 @@ defmodule ArcgisExportWeb.Router do
 
     get "/download", PageController, :download
 
-    live "/export", ExporterLive
-
-    get "/", PageController, :index
+    live "/", ExporterLive
   end
 
   # Other scopes may use custom stacks.
