@@ -1,8 +1,6 @@
 <form phx-submit="validate" class="uk-form-stacked">
   <div class="uk-margin">
-    <div class="uk-form-controls">
-      <input class="uk-input <%= if @service do %>uk-form-success<% end %>" type="text" name="url" value="<%= @url %>" list="matches" placeholder="service url" />
-    </div>
+    <%= live_component @socket, ArcgisExportWeb.InputComponent, %{status: status(assigns), url: @url} %>
   </div>
 
   <div class="uk-margin">
@@ -11,7 +9,7 @@
     </div>
   </div>
 
-  <div><%= @status %></div>
+  <%= live_component @socket, ArcgisExportWeb.InputErrorComponent, %{error: @error} %>
 </form>
 
 <%= if @service do %>
@@ -25,7 +23,6 @@
       <% end %>
     </p>
     <dl class="uk-description-list">
-      <dt>Max Record Count: <%= @service.max_record_count %></dt>
       <dt>Total records: <%= if @service.total_records == nil do %>counting ...<% else %> <%= @service.total_records%> <% end %></dt>
     </dl>
 

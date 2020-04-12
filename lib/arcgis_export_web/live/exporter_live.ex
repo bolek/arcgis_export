@@ -6,7 +6,7 @@ defmodule ArcgisExportWeb.ExporterLive do
   def mount(_params, %{}, socket) do
     # if connected?(socket), do: :timer.send_interval(5000, self(), :update)
 
-    {:ok, assign(socket, url: '', status: '', service: nil, active_downloads: %{})}
+    {:ok, assign(socket, error: nil, url: '', status: '', service: nil, active_downloads: %{})}
   end
 
   def handle_params(%{"url" => url}, _uri, socket) do
@@ -22,11 +22,6 @@ defmodule ArcgisExportWeb.ExporterLive do
   def handle_params(%{}, _uri, socket) do
     {:noreply, socket}
   end
-
-  # def handle_info(:update, socket) do
-  #   # temperature = :rand.uniform(1000)
-  #   # {:noreply, assign(socket, :temperature, temperature)}
-  # end
 
   def handle_event("validate", %{"url" => url}, socket) do
     {:noreply,
@@ -51,19 +46,13 @@ defmodule ArcgisExportWeb.ExporterLive do
   defp maybe_unsubscribe(_), do: :ok
 
   def handle_info({:validate, url}, socket) do
-    case HTTPoison.get(url, [], params: [f: "pjson"]) do
-      {:ok, %{body: body}} ->
-        service =
-          ArcgisExport.Service.build(
-            url,
-            Jason.decode!(body) |> Recase.Enumerable.convert_keys(&Recase.to_snake/1)
-          )
-
+    case ArcgisExport.Service.new(url) do
+      {:ok, service} ->
         send(self(), {:count, service})
-        {:noreply, assign(socket, status: "", service: service)}
+        {:noreply, assign(socket, service: service)}
 
-      {:error, _} ->
-        {:noreply, assign(socket, status: "error")}
+      {:error, error} ->
+        {:noreply, assign(socket, error: error, service: nil)}
     end
   end
 
@@ -85,15 +74,7 @@ defmodule ArcgisExportWeb.ExporterLive do
     {:noreply, assign(socket, active_downloads: Map.put(downloads, payload.pid, payload))}
   end
 
-  def handle_info({:build_csv, service}, socket) do
-    ArcgisExport.Service.to_file(service)
-
-    {:noreply, socket}
-
-    # with {:ok, service} <- ArcgisExport.Service.build_csv(service) do
-    #   {:noreply, assign(socket, service: service)}
-    # else
-    #   {:error, _} -> {:noreply, assign(socket, service: service)}
-    # end
-  end
+  def status(%{error: error}) when not is_nil(error), do: "error"
+  def status(%{service: service}) when not is_nil(service), do: "success"
+  def status(_), do: nil
 end

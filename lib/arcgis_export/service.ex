@@ -21,25 +21,39 @@ defmodule ArcgisExport.Service do
   end
 
   def new(url) do
-    case HTTPoison.get(url, [], params: [f: "pjson"]) do
-      {:ok, %{body: body}} ->
-        service =
-          build(
-            url,
-            Jason.decode!(body) |> Recase.Enumerable.convert_keys(&Recase.to_snake/1)
-          )
-
-        {:ok, service}
-
-      {:error, _} ->
-        {:error, "booom"}
+    with {:ok, url} <- valid_url?(url),
+         {:ok, %{body: body}} <-
+           HTTPoison.get(url, [{"Content-Type", "text/plain;charset=UTF-8"}], params: [f: "pjson"]),
+         {:ok, service_params} <- Jason.decode(body) do
+      ArcgisExport.Service.build(
+        url,
+        service_params |> Recase.Enumerable.convert_keys(&Recase.to_snake/1)
+      )
+    else
+      error ->
+        IO.inspect(error)
+        error
     end
   end
 
+  defp valid_url?(url) do
+    result =
+      url
+      |> String.trim()
+      |> String.match?(~r(/arcgis/rest/services/.*/[0-9]+$))
+
+    if result, do: {:ok, url}, else: {:error, :invalid_url}
+  end
+
+  def build(_, %{"error" => %{"code" => 500}}), do: {:error, :inexistent}
+
   def build(url, params) do
-    %ArcgisExport.Service{url: url}
-    |> changeset(params)
-    |> apply_changes()
+    changeset =
+      %ArcgisExport.Service{url: url}
+      |> changeset(params)
+      |> validate_required([:name, :type, :fields, :max_record_count])
+
+    if changeset.valid?, do: {:ok, apply_changes(changeset)}, else: {:error, :unexpected_response}
   end
 
   def changeset(service, params \\ %{}) do
