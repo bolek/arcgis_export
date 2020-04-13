@@ -11,8 +11,20 @@
     <%= csrf_meta_tag() %>
   </head>
   <body>
-    <div class="uk-section uk-section-primary">
+    <% links(@conn) %>
+    <div class="uk-section uk-section uk-section-primary uk-padding-remove-top">
       <div class="uk-container uk-container-small">
+        <nav class="uk-nav-container uk-navbar-transparent" uk-navbar>
+          <div class="uk-navbar-left">
+            <ul class="uk-navbar-nav">
+              <%= for link <- links(@conn) do %>
+                <%= content_tag :li, link(link.label, to: link.path), class: (if link.active?, do: "uk-active") %>
+              <% end %>
+            </ul>
+          </div>
+        </nav>
+      </div>
+      <div class="uk-container uk-padding-small uk-container-small">        
         <div class="uk-panel uk-light uk-margin-medium">
           <h1>ArcGIS Export</h1>
           <p>Simply export all the data from an ArcGIS REST service endpoint to a CSV file</p>

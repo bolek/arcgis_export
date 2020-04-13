@@ -5,6 +5,14 @@ defmodule ArcgisExportWeb.PageController do
     render(conn, "index.html")
   end
 
+  def faq(conn, _params) do
+    render(conn, "faq.html")
+  end
+
+  def report(conn, _params) do
+    render(conn, "report.html")
+  end
+
   def download(conn, %{"url" => url}) do
     broadcast(url, 0, "initializing download")
 

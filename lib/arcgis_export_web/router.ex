@@ -18,6 +18,8 @@ defmodule ArcgisExportWeb.Router do
     pipe_through :browser
 
     get "/download", PageController, :download
+    get "/faq", PageController, :faq
+    get "/report", PageController, :report
 
     live "/", ExporterLive
   end
