@@ -84,49 +84,6 @@ defmodule ArcgisExport.Service do
     end
   end
 
-  defp random, do: :crypto.strong_rand_bytes(32) |> Base.url_encode64() |> binary_part(0, 32)
-
-  def to_file(service) do
-    file = Path.join(System.tmp_dir!(), random() <> ".csv")
-
-    service
-    |> stream!()
-    |> Stream.chunk_every(service.max_record_count)
-    |> Stream.map(fn x ->
-      Logger.info("next")
-      x
-    end)
-    |> Stream.into(File.stream!(file))
-    |> Stream.run()
-
-    Logger.info(file, label: "DOOOOOOOOOOOOOOOOOOONE")
-  end
-
-  #
-
-  # def build_csv(%Service{} = service) do
-  #
-
-  #   Logger.info(file)
-
-  #   service
-  #   |> get_ids()
-
-  #   with {:ok, records} <- get_records(service) do
-  #     header =
-  #       service.fields
-  #       |> Enum.map(fn %{"name" => name} -> name end)
-
-  #     [header]
-  #     |> Stream.concat(records)
-  #     |> CSV.dump_to_stream()
-  #     |> Stream.into(File.stream!(file))
-  #     |> Stream.run()
-
-  #     {:ok, Map.put(service, :csv_path, file)}
-  #   end
-  # end
-
   def stream!(%Service{} = service) do
     headers =
       service.fields
