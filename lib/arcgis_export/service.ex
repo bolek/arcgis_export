@@ -18,6 +18,7 @@ defmodule ArcgisExport.Service do
     field :fields, {:array, :map}
     field :total_records, :integer
     field :csv_path, :string
+    field :source_spatial_reference, :map
   end
 
   def new(url) do
@@ -51,14 +52,24 @@ defmodule ArcgisExport.Service do
     changeset =
       %ArcgisExport.Service{url: url}
       |> changeset(params)
-      |> validate_required([:name, :type, :fields, :max_record_count])
+      |> validate_required([:name, :type, :fields, :max_record_count, :source_spatial_reference])
 
-    if changeset.valid?, do: {:ok, apply_changes(changeset)}, else: {:error, :unexpected_response}
+    if changeset.valid?,
+      do: {:ok, apply_changes(changeset)},
+      else: {:error, :unexpected_response}
   end
 
   def changeset(service, params \\ %{}) do
     service
-    |> cast(params, [:id, :name, :type, :description, :fields, :max_record_count])
+    |> cast(params, [
+      :id,
+      :name,
+      :type,
+      :description,
+      :fields,
+      :max_record_count,
+      :source_spatial_reference
+    ])
   end
 
   def count(%Service{url: url} = service) do
@@ -146,6 +157,7 @@ defmodule ArcgisExport.Service do
               Path.join(url, "query?where=#{range_condition(object_id_field_name, range)}"),
               [],
               params: [
+                returnGeometry: true,
                 outFields: "*",
                 f: "geojson"
               ],
@@ -155,33 +167,29 @@ defmodule ArcgisExport.Service do
             |> Map.get(:body)
             |> Jason.decode!()
             |> Map.get("features")
-            |> Enum.map(fn %{"properties" => properties} ->
+            |> Enum.map(fn %{"properties" => properties, "geometry" => geometry} ->
               fields
-              |> Enum.map(fn %{"name" => name} -> Map.get(properties, name, "") end)
+              |> Enum.map(fn
+                %{"type" => "esriFieldTypeGeometry"} ->
+                  case Geo.JSON.decode(geometry) do
+                    {:ok, parsed_geometry} ->
+                      parsed_geometry
+                      |> Map.put(:srid, Map.get(service.source_spatial_reference, "latest_wkid"))
+                      |> Geo.WKT.encode!()
+
+                    _ ->
+                      ''
+                  end
+
+                %{"name" => name} ->
+                  Map.get(properties, name, "")
+              end)
             end)
 
           {result, Map.put(acc, :ranges, rest)}
       end,
       fn _ -> :ok end
     )
-
-    # case HTTPoison.get(Path.join(url, "query"), [],
-    #        params: [where: "1=1", outFields: "*", f: "geojson"]
-    #      ) do
-    #   {:ok, %{body: body}} ->
-    #     result =
-    #       Jason.decode!(body)
-    #       |> Map.get("features")
-    #       |> Enum.map(fn %{"properties" => properties} ->
-    #         fields
-    #         |> Enum.map(fn %{"name" => name} -> Map.get(properties, name, "") end)
-    #       end)
-
-    #     {:ok, result}
-
-    #   {:error, _} ->
-    #     {:error, "failed on pulling data"}
-    # end
   end
 
   defp range_condition(field_name, %{from: from, to: nil}),

@@ -47,6 +47,7 @@ defmodule ArcgisExport.MixProject do
       {:httpoison, "~> 1.6"},
       {:recase, "~> 0.5"},
       {:nimble_csv, "~> 0.7"},
+      {:geo, "~> 3.0"},
       {:floki, ">= 0.0.0", only: :test}
     ]
   end
